@@ -6,14 +6,7 @@ import debounce from "lodash.debounce";
 // Anything right or top is Positive and anything left or bottom is negative
 export enum ScrollContainerCoordinateRef {
   TOP = 1,
-  BOTTOM,
-  LEFT,
-  RIGHT
-}
-
-export enum ObservationDirection {
-  HORIZONTAL = 1,
-  VERTICAL
+  BOTTOM
 }
 
 export enum ScrollDirection {
@@ -24,6 +17,8 @@ export enum ScrollDirection {
 export interface ObservationPoint {
   reference: ScrollContainerCoordinateRef;
   displacement: number;
+  intersectWhenScrollUp?: (elem: HTMLElement) => void;
+  intersectWhenScrollDown?: (elem: HTMLElement) => void;
 }
 
 export interface AnchorElement {
@@ -36,7 +31,6 @@ export interface AnchorElement {
 
 export interface InfiniteScrollBaseProps {
   // Below props are supposed to be provided initially and then they should not change
-  observationDirection: ObservationDirection;
   observationPoints: ObservationPoint[];
   loadingComponentTop: JSX.Element;
   loadingComponentBottom: JSX.Element;
@@ -58,13 +52,18 @@ export default class InfiniteScrollBase extends React.Component<
   private scrollRef = React.createRef<HTMLDivElement>();
   private listRef = React.createRef<HTMLDivElement>();
 
-  private updateTransition = {};
+  /**
+   * This element is used to set anchor element which whould be resetted to specified position(or same as before position)
+   */
+  private updateTransitionElem: AnchorElement | null = null;
 
   private touchPositionY = 0;
   private disableScrollHandler = false;
   private touchScrollDirection = ScrollDirection.UP;
 
   private scrollContainerRect: ClientRect | DOMRect | null = null;
+
+  private allIntersectionObservers: IntersectionObserver[] = [];
 
   constructor(props: InfiniteScrollBaseProps) {
     super(props);
@@ -85,20 +84,12 @@ export default class InfiniteScrollBase extends React.Component<
       elemSelector: anchorKeySelector,
       observationPoint: anchorRefPoint
     } = anchorElement;
-
     if (anchorKeySelector) {
-      const anchorElem = document.querySelector(
-        anchorKeySelector
-      ) as HTMLElement;
-      setTimeout(() => {
-        if (this.scrollRef.current && this.listRef.current && anchorElem) {
-          const listRefOffsetTop = this.listRef.current.offsetTop;
-          const anchorElemOffsetTop = anchorElem.offsetTop;
-          this.scrollRef.current.scrollTop =
-            listRefOffsetTop + anchorElemOffsetTop;
-        }
-      }, 0);
+      this.initialScrollSet(anchorKeySelector, anchorRefPoint);
     }
+
+    this.initializeObservers();
+    this.observeChildrenOnIntersection();
   }
 
   shouldComponentUpdate(newProps: InfiniteScrollBaseProps) {
@@ -117,7 +108,42 @@ export default class InfiniteScrollBase extends React.Component<
     // Detect if new anchor element is different from previous ancor element
     let anchorElemChanged = newAnchorElem !== this.props.anchorElement;
 
-    return childrenChanged || anchorElemChanged;
+    if (!(childrenChanged || anchorElemChanged)) {
+      return false;
+    }
+
+    // Unobserve intersections
+    this.unobserveChildrenOnIntersection();
+
+    // Set anchor element for updation
+    if (newAnchorElem.observationPoint) {
+      this.updateTransitionElem = newAnchorElem;
+    } else {
+      const displacement = this.getDisplacementToSetOnSamePosition(
+        newAnchorElem.elemSelector
+      );
+      this.updateTransitionElem = {
+        elemSelector: newAnchorElem.elemSelector,
+        observationPoint: {
+          displacement,
+          reference: ScrollContainerCoordinateRef.TOP
+        }
+      };
+    }
+
+    return true;
+  }
+
+  componentDidUpdate() {
+    if (
+      this.updateTransitionElem &&
+      this.updateTransitionElem.observationPoint
+    ) {
+      const { elemSelector, observationPoint } = this.updateTransitionElem;
+      this.setElemWithPointRef(elemSelector, observationPoint);
+      this.updateTransitionElem = null;
+    }
+    this.observeChildrenOnIntersection();
   }
 
   render() {
@@ -182,4 +208,155 @@ export default class InfiniteScrollBase extends React.Component<
 
   private throttleScroll = throttle(this.scrollHandler, 50);
   private debouncedScroll = debounce(this.scrollEnd, 100);
+
+  // Scroll reset methods
+
+  private initialScrollSet = (
+    anchorKeySelector: string,
+    anchorRefPoint?: ObservationPoint
+  ) => {
+    const anchorElem = document.querySelector(anchorKeySelector) as HTMLElement;
+    if (this.scrollRef.current && this.listRef.current && anchorElem) {
+      if (!anchorRefPoint) {
+        this.setElemAtTop(anchorKeySelector);
+      } else {
+        this.setElemWithPointRef(anchorKeySelector, anchorRefPoint);
+      }
+    }
+  };
+
+  private setElemAtTop = (anchorKeySelector: string) => {
+    if (this.scrollRef.current) {
+      const anchorElem = document.querySelector(
+        anchorKeySelector
+      ) as HTMLElement;
+      const listRefOffsetTop = this.listRef.current
+        ? this.listRef.current.offsetTop
+        : 0; // Distance of list from scroll container
+      const anchorElemOffsetTop = anchorElem.offsetTop; // Distance of elem from list
+
+      const anchorElemScrollTopFromTop = listRefOffsetTop + anchorElemOffsetTop;
+      this.scrollRef.current.scrollTop = anchorElemScrollTopFromTop;
+    }
+  };
+
+  private setElemWithPointRef = (
+    anchorKeySelector: string,
+    anchorRefPoint: ObservationPoint
+  ) => {
+    const anchorElem = document.querySelector(anchorKeySelector) as HTMLElement;
+    const listRefOffsetTop = this.listRef.current
+      ? this.listRef.current.offsetTop
+      : 0; // Distance of list from scroll container
+    const anchorElemOffsetTop = anchorElem.offsetTop; // Distance of elem from list
+
+    const anchorElemScrollTopFromTop = listRefOffsetTop + anchorElemOffsetTop;
+    if (this.scrollRef.current) {
+      switch (anchorRefPoint.reference) {
+        case ScrollContainerCoordinateRef.TOP:
+          this.scrollRef.current.scrollTop =
+            anchorElemScrollTopFromTop + anchorRefPoint.displacement;
+          break;
+        case ScrollContainerCoordinateRef.BOTTOM:
+          const anchorElemScrollTopFromBottom =
+            anchorElemScrollTopFromTop -
+            (this.scrollContainerRect ? this.scrollContainerRect.height : 0);
+          this.scrollRef.current.scrollTop =
+            anchorElemScrollTopFromBottom + anchorRefPoint.displacement;
+          break;
+        default:
+          this.scrollRef.current.scrollTop = anchorElemScrollTopFromTop;
+      }
+    }
+  };
+
+  private initializeObservers = () => {
+    const root = this.scrollRef.current;
+    if (root) {
+      this.props.observationPoints.forEach(observationPoint => {
+        const scrollContainerHeight = this.scrollContainerRect
+          ? this.scrollContainerRect.height
+          : 0;
+        let rootMarginTop = 0;
+        let rootMarginBottom = 0;
+        if (observationPoint.reference === ScrollContainerCoordinateRef.TOP) {
+          rootMarginTop = observationPoint.displacement;
+          rootMarginBottom = (scrollContainerHeight + rootMarginTop - 1) * -1;
+        } else if (
+          observationPoint.reference === ScrollContainerCoordinateRef.BOTTOM
+        ) {
+          rootMarginBottom = observationPoint.displacement * -1;
+          rootMarginTop = (scrollContainerHeight + rootMarginBottom - 1) * -1;
+        }
+        const rootMargin = `${rootMarginTop}px 0px ${rootMarginBottom}px 0px`;
+        const intersectionObserverOptions = {
+          root,
+          rootMargin,
+          threshold: 0
+        };
+
+        const intersectionObserverCallback = (
+          entries: IntersectionObserverEntry[]
+        ) => {
+          entries.forEach(entry => {
+            if (
+              this.touchScrollDirection === ScrollDirection.UP &&
+              observationPoint.intersectWhenScrollUp
+            ) {
+              observationPoint.intersectWhenScrollUp(
+                entry.target as HTMLElement
+              );
+            } else if (
+              this.touchScrollDirection === ScrollDirection.DOWN &&
+              observationPoint.intersectWhenScrollDown
+            ) {
+              observationPoint.intersectWhenScrollDown(
+                entry.target as HTMLElement
+              );
+            }
+          });
+        };
+
+        const intersectionObserver = new IntersectionObserver(
+          intersectionObserverCallback,
+          intersectionObserverOptions
+        );
+
+        this.allIntersectionObservers.push(intersectionObserver);
+      });
+    }
+  };
+
+  private observeChildrenOnIntersection = () => {
+    this.allIntersectionObservers.forEach(intersectionObserver => {
+      const children = this.listRef.current && this.listRef.current.children;
+      if (children && children.length > 0) {
+        for (let i = 0; i < children.length; i++) {
+          intersectionObserver.observe(children[i]);
+        }
+      }
+    });
+  };
+
+  private unobserveChildrenOnIntersection = () => {
+    this.allIntersectionObservers.forEach(intersectionObserver => {
+      intersectionObserver.disconnect();
+    });
+  };
+
+  private getDisplacementToSetOnSamePosition = (
+    anchorElemSelector: string
+  ): number => {
+    const anchorElem = document.querySelector(
+      anchorElemSelector
+    ) as HTMLElement;
+    const anchorElemOffsetTop = anchorElem.offsetTop;
+    const listOffsetTop = this.listRef.current
+      ? this.listRef.current.offsetTop
+      : 0;
+    const scrollTop = this.scrollRef.current
+      ? this.scrollRef.current.scrollTop
+      : 0;
+    return scrollTop - (anchorElemOffsetTop + listOffsetTop);
+  };
 }
