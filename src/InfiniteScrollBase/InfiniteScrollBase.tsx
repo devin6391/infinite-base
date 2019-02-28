@@ -1,6 +1,7 @@
 import * as React from "react";
 import throttle from "lodash.throttle";
 import debounce from "lodash.debounce";
+import "./InfiniteScrollBase.css";
 
 // Assume reference coordinate is center and has value of (0,0)
 // Anything right or top is Positive and anything left or bottom is negative
@@ -17,8 +18,8 @@ export enum ScrollDirection {
 export interface ObservationPoint {
   reference: ScrollContainerCoordinateRef;
   displacement: number;
-  intersectWhenScrollUp?: (elem: HTMLElement) => void;
-  intersectWhenScrollDown?: (elem: HTMLElement) => void;
+  intersectWhenScrollUp?: (elem: HTMLElement, observationPoint: ObservationPoint) => void;
+  intersectWhenScrollDown?: (elem: HTMLElement, observationPoint: ObservationPoint) => void;
 }
 
 export interface AnchorElement {
@@ -39,7 +40,7 @@ export interface InfiniteScrollBaseProps {
   anchorElement: AnchorElement;
   children: JSX.Element[];
 
-  // Scroll related events
+  // DOM event handlers
   onScroll?: (direction: ScrollDirection) => void;
   onscrollEnd?: (direction: ScrollDirection) => void;
   onTouch?: (direction: ScrollDirection) => void;
@@ -85,7 +86,7 @@ export default class InfiniteScrollBase extends React.Component<
       observationPoint: anchorRefPoint
     } = anchorElement;
     if (anchorKeySelector) {
-      this.initialScrollSet(anchorKeySelector, anchorRefPoint);
+      this.initialScrollTopSet(anchorKeySelector, anchorRefPoint);
     }
 
     this.initializeObservers();
@@ -140,7 +141,7 @@ export default class InfiniteScrollBase extends React.Component<
       this.updateTransitionElem.observationPoint
     ) {
       const { elemSelector, observationPoint } = this.updateTransitionElem;
-      this.setElemWithPointRef(elemSelector, observationPoint);
+      this.setScrollTopWithElemAtPoint(elemSelector, observationPoint);
       this.updateTransitionElem = null;
     }
     this.observeChildrenOnIntersection();
@@ -172,6 +173,8 @@ export default class InfiniteScrollBase extends React.Component<
       </div>
     );
   }
+
+  // =========DOM event handlers===========
 
   private touchStartHandler = (evt: React.SyntheticEvent<EventTarget>) => {
     const nativeEvent = evt.nativeEvent as TouchEvent;
@@ -209,23 +212,23 @@ export default class InfiniteScrollBase extends React.Component<
   private throttleScroll = throttle(this.scrollHandler, 50);
   private debouncedScroll = debounce(this.scrollEnd, 100);
 
-  // Scroll reset methods
+  // =========Scroll resetting realated methods===========
 
-  private initialScrollSet = (
+  private initialScrollTopSet = (
     anchorKeySelector: string,
     anchorRefPoint?: ObservationPoint
   ) => {
     const anchorElem = document.querySelector(anchorKeySelector) as HTMLElement;
     if (this.scrollRef.current && this.listRef.current && anchorElem) {
       if (!anchorRefPoint) {
-        this.setElemAtTop(anchorKeySelector);
+        this.setScrollTopWithElemAtTop(anchorKeySelector);
       } else {
-        this.setElemWithPointRef(anchorKeySelector, anchorRefPoint);
+        this.setScrollTopWithElemAtPoint(anchorKeySelector, anchorRefPoint);
       }
     }
   };
 
-  private setElemAtTop = (anchorKeySelector: string) => {
+  private setScrollTopWithElemAtTop = (anchorKeySelector: string) => {
     if (this.scrollRef.current) {
       const anchorElem = document.querySelector(
         anchorKeySelector
@@ -240,7 +243,7 @@ export default class InfiniteScrollBase extends React.Component<
     }
   };
 
-  private setElemWithPointRef = (
+  private setScrollTopWithElemAtPoint = (
     anchorKeySelector: string,
     anchorRefPoint: ObservationPoint
   ) => {
@@ -270,6 +273,24 @@ export default class InfiniteScrollBase extends React.Component<
     }
   };
 
+  private getDisplacementToSetOnSamePosition = (
+    anchorElemSelector: string
+  ): number => {
+    const anchorElem = document.querySelector(
+      anchorElemSelector
+    ) as HTMLElement;
+    const anchorElemOffsetTop = anchorElem.offsetTop;
+    const listOffsetTop = this.listRef.current
+      ? this.listRef.current.offsetTop
+      : 0;
+    const scrollTop = this.scrollRef.current
+      ? this.scrollRef.current.scrollTop
+      : 0;
+    return scrollTop - (anchorElemOffsetTop + listOffsetTop);
+  };
+
+  // =========Intersection observer realated methods===========
+
   private initializeObservers = () => {
     const root = this.scrollRef.current;
     if (root) {
@@ -295,30 +316,8 @@ export default class InfiniteScrollBase extends React.Component<
           threshold: 0
         };
 
-        const intersectionObserverCallback = (
-          entries: IntersectionObserverEntry[]
-        ) => {
-          entries.forEach(entry => {
-            if (
-              this.touchScrollDirection === ScrollDirection.UP &&
-              observationPoint.intersectWhenScrollUp
-            ) {
-              observationPoint.intersectWhenScrollUp(
-                entry.target as HTMLElement
-              );
-            } else if (
-              this.touchScrollDirection === ScrollDirection.DOWN &&
-              observationPoint.intersectWhenScrollDown
-            ) {
-              observationPoint.intersectWhenScrollDown(
-                entry.target as HTMLElement
-              );
-            }
-          });
-        };
-
         const intersectionObserver = new IntersectionObserver(
-          intersectionObserverCallback,
+            this.createIntersectionCallback(observationPoint),
           intersectionObserverOptions
         );
 
@@ -326,6 +325,33 @@ export default class InfiniteScrollBase extends React.Component<
       });
     }
   };
+
+  private createIntersectionCallback = (observationPoint: ObservationPoint): IntersectionObserverCallback => {
+      const intersectionObserverCallback = (
+        entries: IntersectionObserverEntry[]
+      ) => {
+        entries.forEach(entry => {
+          if (
+            this.touchScrollDirection === ScrollDirection.UP &&
+            observationPoint.intersectWhenScrollUp
+          ) {
+            observationPoint.intersectWhenScrollUp(
+              entry.target as HTMLElement,
+              observationPoint
+            );
+          } else if (
+            this.touchScrollDirection === ScrollDirection.DOWN &&
+            observationPoint.intersectWhenScrollDown
+          ) {
+            observationPoint.intersectWhenScrollDown(
+              entry.target as HTMLElement,
+              observationPoint
+            );
+          }
+        });
+      };
+      return intersectionObserverCallback;
+  }
 
   private observeChildrenOnIntersection = () => {
     this.allIntersectionObservers.forEach(intersectionObserver => {
@@ -342,21 +368,5 @@ export default class InfiniteScrollBase extends React.Component<
     this.allIntersectionObservers.forEach(intersectionObserver => {
       intersectionObserver.disconnect();
     });
-  };
-
-  private getDisplacementToSetOnSamePosition = (
-    anchorElemSelector: string
-  ): number => {
-    const anchorElem = document.querySelector(
-      anchorElemSelector
-    ) as HTMLElement;
-    const anchorElemOffsetTop = anchorElem.offsetTop;
-    const listOffsetTop = this.listRef.current
-      ? this.listRef.current.offsetTop
-      : 0;
-    const scrollTop = this.scrollRef.current
-      ? this.scrollRef.current.scrollTop
-      : 0;
-    return scrollTop - (anchorElemOffsetTop + listOffsetTop);
   };
 }
