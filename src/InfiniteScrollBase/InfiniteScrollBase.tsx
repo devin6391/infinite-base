@@ -15,11 +15,12 @@ export enum ScrollDirection {
   DOWN
 }
 
+export type ScrollIntersectionCallback = (elem: HTMLElement, observationPoint: ObservationPoint, scrollDirection: ScrollDirection) => void;
+
 export interface ObservationPoint {
   reference: ScrollContainerCoordinateRef;
   displacement: number;
-  intersectWhenScrollUp?: (elem: HTMLElement, observationPoint: ObservationPoint) => void;
-  intersectWhenScrollDown?: (elem: HTMLElement, observationPoint: ObservationPoint) => void;
+  intersectionCallback?: ScrollIntersectionCallback;
 }
 
 export interface AnchorElement {
@@ -332,20 +333,12 @@ export default class InfiniteScrollBase extends React.Component<
       ) => {
         entries.forEach(entry => {
           if (
-            this.touchScrollDirection === ScrollDirection.UP &&
-            observationPoint.intersectWhenScrollUp
+            observationPoint.intersectionCallback && entry.isIntersecting
           ) {
-            observationPoint.intersectWhenScrollUp(
+            observationPoint.intersectionCallback(
               entry.target as HTMLElement,
-              observationPoint
-            );
-          } else if (
-            this.touchScrollDirection === ScrollDirection.DOWN &&
-            observationPoint.intersectWhenScrollDown
-          ) {
-            observationPoint.intersectWhenScrollDown(
-              entry.target as HTMLElement,
-              observationPoint
+              observationPoint,
+              this.touchScrollDirection
             );
           }
         });
