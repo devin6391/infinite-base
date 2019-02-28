@@ -1,25 +1,26 @@
 import * as React from "react";
 import {
-  getInitialData,
   addDataAtBottom,
+  adddDataAtTop,
   addMultipleDataInMiddle,
   addSingleDataInMiddle,
-  adddDataAtTop,
+  getInitialData,
   removeDataFromBottom,
   removeDataFromTop,
   removeMultipleDataInMiddle,
   removeSingleDataInMiddle
 } from "./dataService";
-
-import InfiniteScrollBase, {
-  ObservationPoint,
+import {
   AnchorElement,
+  ObservationPoint,
+  ScrollIntersectionCallback
+} from "../InfiniteScrollBase/utils";
+import {
+  InfiniteScrollBase,
   ScrollContainerCoordinateRef,
-  ScrollIntersectionCallback,
   ScrollDirection
-} from "../InfiniteScrollBase/InfiniteScrollBase";
-
-import './InfiniteScrollView.css';
+} from "../InfiniteScrollBase";
+import "./InfiniteScrollView.css";
 
 export interface InfiniteScrollViewState {
   data: number[];
@@ -42,18 +43,17 @@ export default class InfiniteScrollView extends React.Component<
 
   componentDidMount() {
     getInitialData().then(data => {
-        const elemSelector = `div[data-val="${data[3]}"]`;
-        const anchorElement = {elemSelector};
-        this.setState({data, anchorElement});
+      const elemSelector = `div[data-val="${data[3]}"]`;
+      const anchorElement = { elemSelector };
+      this.setState({ data, anchorElement });
     });
   }
 
   render() {
     return (
       <div className="viewContainer">
-      {
-          this.state.data.length > 0 ? (
-            <InfiniteScrollBase
+        {this.state.data.length > 0 ? (
+          <InfiniteScrollBase
             observationPoints={this.observationPoints}
             loadingComponentTop={<Loader />}
             loadingComponentBottom={<Loader />}
@@ -65,8 +65,7 @@ export default class InfiniteScrollView extends React.Component<
               </div>
             ))}
           </InfiniteScrollBase>
-          ) : null
-      }
+        ) : null}
       </div>
     );
   }
@@ -155,10 +154,13 @@ export default class InfiniteScrollView extends React.Component<
   }
 
   private allTriggers() {
-      console.log("Top-most element: ", this.topMostElem);
-      console.log("Bottom-most element: ", this.bottomMostElem);
-      console.log("Elements above top of container: ", this.elementsAboveTop);
-      console.log("Elements below bottom of container: ", this.elementsBelowBottom);
+    console.log("Top-most element: ", this.topMostElem);
+    console.log("Bottom-most element: ", this.bottomMostElem);
+    console.log("Elements above top of container: ", this.elementsAboveTop);
+    console.log(
+      "Elements below bottom of container: ",
+      this.elementsBelowBottom
+    );
   }
 }
 
