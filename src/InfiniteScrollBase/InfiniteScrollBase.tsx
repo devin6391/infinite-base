@@ -13,7 +13,8 @@ import {
   outViewportBottomObservationFromTop,
   inViewPortObservers,
   outViewportTopObserver,
-  outViewportBottomObserver
+  outViewportBottomObserver,
+  setTouchScrollDirection
 } from "./utils";
 
 export interface InfiniteScrollBaseProps {
@@ -62,21 +63,22 @@ export default class InfiniteScrollBase extends React.Component<
     // Set the children set
     this.curentChildrenSet = new Set([...children]);
 
-    // set the scroll container dimensions
-    this.scrollContainerRect =
-      this.scrollRef.current && this.scrollRef.current.getBoundingClientRect();
-
     // Positioning anchor element
-    const {
-      elemSelector: anchorKeySelector,
-      observationPoint: anchorRefPoint
-    } = anchorElement;
-    if (anchorKeySelector) {
-      this.initialScrollTopSet(anchorKeySelector, anchorRefPoint);
-    }
-
-    this.initializeObservers();
-    this.observeChildrenOnIntersection();
+    setTimeout(() => {
+        // set the scroll container dimensions
+            this.scrollContainerRect =
+            this.scrollRef.current && this.scrollRef.current.getBoundingClientRect();
+        const {
+            elemSelector: anchorKeySelector,
+            observationPoint: anchorRefPoint
+          } = anchorElement;
+          if (anchorKeySelector) {
+            this.initialScrollTopSet(anchorKeySelector, anchorRefPoint);
+          }
+      
+          this.initializeObservers();
+          this.observeChildrenOnIntersection();
+    }, 0);
   }
 
   shouldComponentUpdate(newProps: InfiniteScrollBaseProps) {
@@ -176,6 +178,7 @@ export default class InfiniteScrollBase extends React.Component<
         ? ScrollDirection.DOWN
         : ScrollDirection.UP;
     this.touchScrollDirection = touchDirection;
+    setTouchScrollDirection(touchDirection);
   };
 
   private scrollHandler = () => {
@@ -295,8 +298,7 @@ export default class InfiniteScrollBase extends React.Component<
           const intersectionObservers = inViewPortObservers(
             root,
             observationPoint,
-            scrollContainerHeight,
-            this.touchScrollDirection
+            scrollContainerHeight
           );
           intersectionObservers.forEach(obs =>
             this.allIntersectionObservers.push(obs)
@@ -307,8 +309,7 @@ export default class InfiniteScrollBase extends React.Component<
         ) {
           const intersectionObserver = outViewportTopObserver(
             root,
-            observationPoint,
-            this.touchScrollDirection
+            observationPoint
           );
           this.allIntersectionObservers.push(intersectionObserver);
         } else if (
@@ -317,8 +318,7 @@ export default class InfiniteScrollBase extends React.Component<
         ) {
           const intersectionObserver = outViewportBottomObserver(
             root,
-            observationPoint,
-            this.touchScrollDirection
+            observationPoint
           );
           this.allIntersectionObservers.push(intersectionObserver);
         }

@@ -31,8 +31,7 @@ export enum ScrollDirection {
 }
 
 export const inViewPortObservationFromTop = (
-  observationPoint: ObservationPoint,
-  touchScrollDirection: ScrollDirection
+  observationPoint: ObservationPoint
 ): IntersectionObserverCallback => {
   const inViewPortObservationFromTopCallback = (
     entries: IntersectionObserverEntry[]
@@ -55,8 +54,7 @@ export const inViewPortObservationFromTop = (
 };
 
 export const inViewPortObservationFromBottom = (
-  observationPoint: ObservationPoint,
-  touchScrollDirection: ScrollDirection
+  observationPoint: ObservationPoint
 ): IntersectionObserverCallback => {
   const inViewPortObservationFromTopCallback = (
     entries: IntersectionObserverEntry[]
@@ -79,8 +77,7 @@ export const inViewPortObservationFromBottom = (
 };
 
 export const outViewportTopObservationFromBottom = (
-  observationPoint: ObservationPoint,
-  touchScrollDirection: ScrollDirection
+  observationPoint: ObservationPoint
 ): IntersectionObserverCallback => {
   const inViewPortObservationFromTopCallback = (
     entries: IntersectionObserverEntry[]
@@ -119,8 +116,7 @@ export const outViewportTopObservationFromBottom = (
 };
 
 export const outViewportBottomObservationFromTop = (
-  observationPoint: ObservationPoint,
-  touchScrollDirection: ScrollDirection
+  observationPoint: ObservationPoint
 ): IntersectionObserverCallback => {
   const inViewPortObservationFromTopCallback = (
     entries: IntersectionObserverEntry[]
@@ -161,8 +157,7 @@ export const outViewportBottomObservationFromTop = (
 export const inViewPortObservers = (
   root: HTMLDivElement,
   observationPoint: ObservationPoint,
-  scrollContainerHeight: number,
-  touchScrollDirection: ScrollDirection
+  scrollContainerHeight: number
 ): IntersectionObserver[] => {
   const allIntersectionObservers: IntersectionObserver[] = [];
   const { reference, displacement } = observationPoint;
@@ -181,7 +176,7 @@ export const inViewPortObservers = (
     threshold: 0
   };
   const intersectionObserver1 = new IntersectionObserver(
-    inViewPortObservationFromTop(observationPoint, touchScrollDirection),
+    inViewPortObservationFromTop(observationPoint),
     intersectionObserverOptions1
   );
   allIntersectionObservers.push(intersectionObserver1);
@@ -195,7 +190,7 @@ export const inViewPortObservers = (
     threshold: 0
   };
   const intersectionObserver2 = new IntersectionObserver(
-    inViewPortObservationFromBottom(observationPoint, touchScrollDirection),
+    inViewPortObservationFromBottom(observationPoint),
     intersectionObserverOptions2
   );
   allIntersectionObservers.push(intersectionObserver2);
@@ -205,8 +200,7 @@ export const inViewPortObservers = (
 
 export const outViewportTopObserver = (
   root: HTMLDivElement,
-  observationPoint: ObservationPoint,
-  touchScrollDirection: ScrollDirection
+  observationPoint: ObservationPoint
 ): IntersectionObserver => {
   const { displacement } = observationPoint;
   const distance = Math.abs(displacement);
@@ -217,7 +211,7 @@ export const outViewportTopObserver = (
     threshold: [0, 1]
   };
   const intersectionObserver = new IntersectionObserver(
-    outViewportTopObservationFromBottom(observationPoint, touchScrollDirection),
+    outViewportTopObservationFromBottom(observationPoint),
     intersectionObserverOptions
   );
   return intersectionObserver;
@@ -225,8 +219,7 @@ export const outViewportTopObserver = (
 
 export const outViewportBottomObserver = (
   root: HTMLDivElement,
-  observationPoint: ObservationPoint,
-  touchScrollDirection: ScrollDirection
+  observationPoint: ObservationPoint
 ): IntersectionObserver => {
   const { displacement } = observationPoint;
   const distance = Math.abs(displacement);
@@ -237,8 +230,14 @@ export const outViewportBottomObserver = (
     threshold: [0, 1]
   };
   const intersectionObserver = new IntersectionObserver(
-    outViewportBottomObservationFromTop(observationPoint, touchScrollDirection),
+    outViewportBottomObservationFromTop(observationPoint),
     intersectionObserverOptions
   );
   return intersectionObserver;
 };
+
+let touchScrollDirection = ScrollDirection.UP;
+
+export function setTouchScrollDirection(direction: ScrollDirection) {
+  touchScrollDirection = direction;
+}

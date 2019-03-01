@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import './App.css';
-import InfiniteScrollView from './CustomInfiniteScrollView1/InfiniteScrollView';
+import ISV from './CustomInfiniteScrollView2/ISV';
 
 class App extends Component {
   render() {
     return (
       <div className="App">
-        <InfiniteScrollView />
+        <ISV />
       </div>
     );
   }

@@ -164,6 +164,6 @@ export default class InfiniteScrollView extends React.Component<
   }
 }
 
-function Loader() {
+export function Loader() {
   return <div className="loader">Loading...</div>;
 }
