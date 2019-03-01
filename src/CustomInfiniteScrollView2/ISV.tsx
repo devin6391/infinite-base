@@ -43,6 +43,19 @@ export default class ISV extends React.Component<{}, ISVState> {
     intersectionCallback: this.intersectionCallback
   };
 
+  componentDidMount() {
+      try {
+          const locationQueryString = window.location.search.substr(1);
+          const singleQueryStringArr = locationQueryString.split("&");
+          const reference = singleQueryStringArr[0].split("=")[1] === "top" ? ScrollContainerCoordinateRef.TOP : ScrollContainerCoordinateRef.BOTTOM;
+          const displacement = +singleQueryStringArr[1].split("=")[1];
+          this.observationPoint.reference = reference;
+          this.observationPoint.displacement = displacement;
+      }catch(e) {
+        console.error("You can pass reference and displacement in url query param as '?reference=top&displacement=-40'");
+      }
+  }
+
   render() {
     return (
       <div className="viewContainer">
