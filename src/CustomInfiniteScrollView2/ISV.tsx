@@ -38,8 +38,8 @@ export default class ISV extends React.Component<{}, ISVState> {
   };
 
   private observationPoint: ObservationPoint = {
-    reference: ScrollContainerCoordinateRef.TOP,
-    displacement: -105,
+    reference: ScrollContainerCoordinateRef.BOTTOM,
+    displacement: 100,
     intersectionCallback: this.intersectionCallback
   };
 

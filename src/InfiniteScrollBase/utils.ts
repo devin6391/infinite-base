@@ -94,7 +94,7 @@ export const outViewportTopObservationFromBottom = (
         Math.round(intersectionRatio * 100) > 50;
       if (
         observationPoint.intersectionCallback &&
-        (rootBounds.top > intersectionRect.top || intersectionRect.top === 0) &&
+        (rootBounds.top >= intersectionRect.top || intersectionRect.top === 0) &&
         isIntersecting
       ) {
         if (

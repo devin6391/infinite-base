@@ -293,7 +293,7 @@ export default class InfiniteScrollBase extends React.Component<
           (reference === ScrollContainerCoordinateRef.TOP &&
             displacement < 0) ||
           (reference === ScrollContainerCoordinateRef.BOTTOM &&
-            displacement >= 0)
+            displacement > 0)
         ) {
           const intersectionObservers = inViewPortObservers(
             root,
@@ -314,7 +314,7 @@ export default class InfiniteScrollBase extends React.Component<
           this.allIntersectionObservers.push(intersectionObserver);
         } else if (
           reference === ScrollContainerCoordinateRef.BOTTOM &&
-          displacement < 0
+          displacement <= 0
         ) {
           const intersectionObserver = outViewportBottomObserver(
             root,
