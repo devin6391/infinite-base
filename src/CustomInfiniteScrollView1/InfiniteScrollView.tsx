@@ -125,7 +125,7 @@ export default class InfiniteScrollView extends React.Component<
 
   private observationPointFarTop: ObservationPoint = {
     reference: ScrollContainerCoordinateRef.TOP,
-    displacement: 3000,
+    displacement: 300,
     intersectionCallback: this.intersectionCallback
   };
 
@@ -137,7 +137,7 @@ export default class InfiniteScrollView extends React.Component<
 
   private observationPointFarBottom: ObservationPoint = {
     reference: ScrollContainerCoordinateRef.BOTTOM,
-    displacement: -3000,
+    displacement: -300,
     intersectionCallback: this.intersectionCallback
   };
 
