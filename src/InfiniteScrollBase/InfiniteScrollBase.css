@@ -1,25 +1,25 @@
 .infiniteScrollContainer {
-    height: calc(100% - 2px);
-    width: calc(100% - 2px);
-    overflow-y: scroll;
-    overflow-x: hidden;
-    position: relative;
-    overscroll-behavior: none;
-    transform: translate3d(0, 0, 0);
-    will-change: transform;
-    border: 1px dashed #333;
-  }
-  
-  .listContainer {
-    height: auto;
-    width: auto;
-    transform: translate3d(0, 0, 0);
-    will-change: transform;
-  }
+  height: 100%;
+  width: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  position: relative;
+  overscroll-behavior: none;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
 
-  .loadingComponentTop, .loadingComponentBottom {
-      width: 100%;
-      height: auto;
-      display: flex;
-      justify-content: center;
-  }
+.listContainer {
+  height: auto;
+  width: auto;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.loadingComponentTop,
+.loadingComponentBottom {
+  width: 100%;
+  height: auto;
+  display: flex;
+  justify-content: center;
+}

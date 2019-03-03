@@ -7,14 +7,9 @@ import {
   AnchorElement,
   ScrollDirection,
   ScrollContainerCoordinateRef,
-  inViewPortObservationFromTop,
-  inViewPortObservationFromBottom,
-  outViewportTopObservationFromBottom,
-  outViewportBottomObservationFromTop,
-  inViewPortObservers,
-  outViewportTopObserver,
-  outViewportBottomObserver,
-  setTouchScrollDirection
+  setTouchScrollDirection,
+  viewportBottomObserver,
+  viewportTopObserver
 } from "./utils";
 
 export interface InfiniteScrollBaseProps {
@@ -65,19 +60,20 @@ export default class InfiniteScrollBase extends React.Component<
 
     // Positioning anchor element
     setTimeout(() => {
-        // set the scroll container dimensions
-            this.scrollContainerRect =
-            this.scrollRef.current && this.scrollRef.current.getBoundingClientRect();
-        const {
-            elemSelector: anchorKeySelector,
-            observationPoint: anchorRefPoint
-          } = anchorElement;
-          if (anchorKeySelector) {
-            this.initialScrollTopSet(anchorKeySelector, anchorRefPoint);
-          }
-      
-          this.initializeObservers();
-          this.observeChildrenOnIntersection();
+      // set the scroll container dimensions
+      this.scrollContainerRect =
+        this.scrollRef.current &&
+        this.scrollRef.current.getBoundingClientRect();
+      const {
+        elemSelector: anchorKeySelector,
+        observationPoint: anchorRefPoint
+      } = anchorElement;
+      if (anchorKeySelector) {
+        this.initialScrollTopSet(anchorKeySelector, anchorRefPoint);
+      }
+
+      this.initializeObservers();
+      this.observeChildrenOnIntersection();
     }, 0);
   }
 
@@ -289,38 +285,18 @@ export default class InfiniteScrollBase extends React.Component<
       this.props.observationPoints.forEach(observationPoint => {
         const { reference, displacement } = observationPoint;
         const distance = Math.abs(displacement);
-        if (
-          (reference === ScrollContainerCoordinateRef.TOP &&
-            displacement < 0) ||
-          (reference === ScrollContainerCoordinateRef.BOTTOM &&
-            displacement > 0)
-        ) {
-          const intersectionObservers = inViewPortObservers(
-            root,
-            observationPoint,
-            scrollContainerHeight
-          );
-          intersectionObservers.forEach(obs =>
-            this.allIntersectionObservers.push(obs)
-          );
-        } else if (
-          reference === ScrollContainerCoordinateRef.TOP &&
-          displacement >= 0
-        ) {
-          const intersectionObserver = outViewportTopObserver(
+        if (reference === ScrollContainerCoordinateRef.TOP) {
+          const intersectionObservers = viewportBottomObserver(
             root,
             observationPoint
           );
-          this.allIntersectionObservers.push(intersectionObserver);
-        } else if (
-          reference === ScrollContainerCoordinateRef.BOTTOM &&
-          displacement <= 0
-        ) {
-          const intersectionObserver = outViewportBottomObserver(
+          this.allIntersectionObservers.push(intersectionObservers);
+        } else if (reference === ScrollContainerCoordinateRef.BOTTOM) {
+          const intersectionObservers = viewportTopObserver(
             root,
             observationPoint
           );
-          this.allIntersectionObservers.push(intersectionObserver);
+          this.allIntersectionObservers.push(intersectionObservers);
         }
       });
     }
