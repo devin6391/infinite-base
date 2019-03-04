@@ -55,10 +55,12 @@ export default class ISV extends React.Component<{}, ISVState> {
     observationPoint: ObservationPoint,
     positionRelativeToPoint: PositionRelativeToPoint
   ) => {
-    if (positionRelativeToPoint === PositionRelativeToPoint.JUST_ABOVE) {
+    if (positionRelativeToPoint === PositionRelativeToPoint.ABOVE) {
       this.elementAbovePoint(elem, observationPoint);
-    } else if (positionRelativeToPoint === PositionRelativeToPoint.JUST_BELOW) {
+    } else if (positionRelativeToPoint === PositionRelativeToPoint.BELOW) {
       this.elementBelowPoint(elem, observationPoint);
+    } else if(positionRelativeToPoint === PositionRelativeToPoint.THROUGH) {
+      this.elementThroughPoint(elem, observationPoint);
     }
   };
 
@@ -115,6 +117,19 @@ export default class ISV extends React.Component<{}, ISVState> {
       console.log(elem);
     }
   };
+
+  private elementThroughPoint = (
+    elem: HTMLElement,
+    observationPoint: ObservationPoint
+  ) => {
+    if (observationPoint === this.observationPoint) {
+      console.log(
+        "%c=====Reporting: Element through=====",
+        "font-size: 14px; color: green"
+      );
+      console.log(elem);
+    }
+  }
 }
 
 const initialData = [

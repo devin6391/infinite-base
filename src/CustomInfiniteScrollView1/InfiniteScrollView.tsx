@@ -76,9 +76,9 @@ export default class InfiniteScrollView extends React.Component<
     observationPoint: ObservationPoint,
     positionRelativeToPoint: PositionRelativeToPoint
   ) => {
-    if (positionRelativeToPoint === PositionRelativeToPoint.JUST_ABOVE) {
+    if (positionRelativeToPoint === PositionRelativeToPoint.ABOVE) {
       this.scrollUpIntersectionCallback(elem, observationPoint);
-    } else if (positionRelativeToPoint === PositionRelativeToPoint.JUST_BELOW) {
+    } else if (positionRelativeToPoint === PositionRelativeToPoint.BELOW) {
       this.scrollDownIntersectionCallback(elem, observationPoint);
     }
     this.allTriggers();

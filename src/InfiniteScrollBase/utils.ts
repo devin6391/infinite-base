@@ -31,8 +31,9 @@ export enum ScrollDirection {
 }
 
 export enum PositionRelativeToPoint {
-  JUST_ABOVE,
-  JUST_BELOW
+  ABOVE = 1,
+  THROUGH,
+  BELOW
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -47,7 +48,8 @@ function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
         rootBounds,
         intersectionRatio,
         isIntersecting,
-        boundingClientRect
+        boundingClientRect,
+        time
       } = entry;
       console.log("\n\n");
       console.log(
@@ -64,19 +66,38 @@ function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
       console.log(boundingClientRect.top);
       console.log("Intersection ratio");
       console.log(Math.round(intersectionRatio * 100));
-      if (
-        observationPoint.intersectionCallback &&
-        boundingClientRect.bottom >= rootBounds.bottom
-      ) {
-        const positionRelativeToPoint =
-          boundingClientRect.top >= rootBounds.bottom
-            ? PositionRelativeToPoint.JUST_BELOW
-            : PositionRelativeToPoint.JUST_ABOVE;
-        observationPoint.intersectionCallback(
-          target as HTMLElement,
-          observationPoint,
-          positionRelativeToPoint
-        );
+      console.log("Intersection time");
+      console.log(time);
+
+      if (observationPoint.intersectionCallback) {
+        let positionRelativeToPoint: PositionRelativeToPoint | null = null;
+
+        if (
+          touchScrollDirection === ScrollDirection.UP &&
+          boundingClientRect.top < rootBounds.bottom &&
+          boundingClientRect.top > rootBounds.top
+        ) {
+          positionRelativeToPoint =
+            boundingClientRect.bottom > rootBounds.bottom
+              ? PositionRelativeToPoint.THROUGH
+              : PositionRelativeToPoint.ABOVE;
+        } else if (
+          touchScrollDirection === ScrollDirection.DOWN &&
+          boundingClientRect.bottom > rootBounds.bottom
+        ) {
+          positionRelativeToPoint =
+            boundingClientRect.top < rootBounds.bottom
+              ? PositionRelativeToPoint.THROUGH
+              : PositionRelativeToPoint.BELOW;
+        }
+
+        if (positionRelativeToPoint) {
+          observationPoint.intersectionCallback(
+            target as HTMLElement,
+            observationPoint,
+            positionRelativeToPoint
+          );
+        }
       }
     });
   };
@@ -94,7 +115,8 @@ function createViewportBottomObserverCallback(
         rootBounds,
         intersectionRatio,
         isIntersecting,
-        boundingClientRect
+        boundingClientRect,
+        time
       } = entry;
       console.log("\n\n");
       console.log(
@@ -105,26 +127,44 @@ function createViewportBottomObserverCallback(
       console.log(target);
       console.log("is intersecting?");
       console.log(isIntersecting);
-      console.log("Root bounds top");
-      console.log(rootBounds.top);
-      console.log("Target Rect top");
-      console.log(boundingClientRect.top);
+      console.log("Root bounds");
+      console.log(rootBounds);
+      console.log("Target Rect");
+      console.log(boundingClientRect);
       console.log("Intersection ratio");
       console.log(Math.round(intersectionRatio * 100));
+      console.log("Intersection time");
+      console.log(time);
 
-      if (
-        observationPoint.intersectionCallback &&
-        boundingClientRect.top <= rootBounds.top
-      ) {
-        const positionRelativeToPoint =
-          boundingClientRect.bottom <= rootBounds.top
-            ? PositionRelativeToPoint.JUST_ABOVE
-            : PositionRelativeToPoint.JUST_BELOW;
-        observationPoint.intersectionCallback(
-          target as HTMLElement,
-          observationPoint,
-          positionRelativeToPoint
-        );
+      if (observationPoint.intersectionCallback) {
+        let positionRelativeToPoint: PositionRelativeToPoint | null = null;
+
+        if (
+          touchScrollDirection === ScrollDirection.UP &&
+          boundingClientRect.top < rootBounds.top
+        ) {
+          positionRelativeToPoint =
+            boundingClientRect.bottom > rootBounds.top
+              ? PositionRelativeToPoint.THROUGH
+              : PositionRelativeToPoint.ABOVE;
+        } else if (
+          touchScrollDirection === ScrollDirection.DOWN &&
+          boundingClientRect.bottom > rootBounds.top &&
+          boundingClientRect.bottom < rootBounds.bottom
+        ) {
+          positionRelativeToPoint =
+            boundingClientRect.top < rootBounds.top
+              ? PositionRelativeToPoint.THROUGH
+              : PositionRelativeToPoint.BELOW;
+        }
+
+        if (positionRelativeToPoint) {
+          observationPoint.intersectionCallback(
+            target as HTMLElement,
+            observationPoint,
+            positionRelativeToPoint
+          );
+        }
       }
     });
   };
@@ -172,7 +212,8 @@ let touchScrollDirection = ScrollDirection.UP;
 
 export function setTouchScrollDirection(direction: ScrollDirection) {
   console.log(
-    "Scroll direction: " + (direction === ScrollDirection.UP ? "UP" : "DOWN")
+    "%cScroll direction: " + (direction === ScrollDirection.UP ? "UP" : "DOWN"),
+    "color: green"
   );
   touchScrollDirection = direction;
 }
