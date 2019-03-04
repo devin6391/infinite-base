@@ -13,7 +13,8 @@ import {
 import {
   AnchorElement,
   ObservationPoint,
-  ScrollIntersectionCallback
+  PointIntersectionCallback,
+  PositionRelativeToPoint
 } from "../InfiniteScrollBase/utils";
 import {
   InfiniteScrollBase,
@@ -70,14 +71,14 @@ export default class InfiniteScrollView extends React.Component<
     );
   }
 
-  private intersectionCallback: ScrollIntersectionCallback = (
+  private intersectionCallback: PointIntersectionCallback = (
     elem: HTMLElement,
     observationPoint: ObservationPoint,
-    scrollDirection: ScrollDirection
+    positionRelativeToPoint: PositionRelativeToPoint
   ) => {
-    if (scrollDirection === ScrollDirection.UP) {
+    if (positionRelativeToPoint === PositionRelativeToPoint.JUST_ABOVE) {
       this.scrollUpIntersectionCallback(elem, observationPoint);
-    } else if (scrollDirection === ScrollDirection.DOWN) {
+    } else if (positionRelativeToPoint === PositionRelativeToPoint.JUST_BELOW) {
       this.scrollDownIntersectionCallback(elem, observationPoint);
     }
     this.allTriggers();

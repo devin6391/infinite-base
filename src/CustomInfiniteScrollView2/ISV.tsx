@@ -2,7 +2,8 @@ import * as React from "react";
 import {
   AnchorElement,
   ObservationPoint,
-  ScrollIntersectionCallback
+  PointIntersectionCallback,
+  PositionRelativeToPoint
 } from "../InfiniteScrollBase/utils";
 import {
   InfiniteScrollBase,
@@ -49,15 +50,15 @@ export default class ISV extends React.Component<{}, ISVState> {
     };
   }
 
-  private intersectionCallback: ScrollIntersectionCallback = (
+  private intersectionCallback: PointIntersectionCallback = (
     elem: HTMLElement,
     observationPoint: ObservationPoint,
-    scrollDirection: ScrollDirection
+    positionRelativeToPoint: PositionRelativeToPoint
   ) => {
-    if (scrollDirection === ScrollDirection.UP) {
-      this.scrollUpIntersectionCallback(elem, observationPoint);
-    } else if (scrollDirection === ScrollDirection.DOWN) {
-      this.scrollDownIntersectionCallback(elem, observationPoint);
+    if (positionRelativeToPoint === PositionRelativeToPoint.JUST_ABOVE) {
+      this.elementAbovePoint(elem, observationPoint);
+    } else if (positionRelativeToPoint === PositionRelativeToPoint.JUST_BELOW) {
+      this.elementBelowPoint(elem, observationPoint);
     }
   };
 
@@ -89,22 +90,22 @@ export default class ISV extends React.Component<{}, ISVState> {
     );
   }
 
-  private scrollUpIntersectionCallback = (
+  private elementAbovePoint = (
     elem: HTMLElement,
     observationPoint: ObservationPoint
   ) => {
     if (observationPoint === this.observationPoint) {
-      console.log("=====Intersecting upwards=====");
+      console.log("=====Element just above=====");
       console.log(elem);
     }
   };
 
-  private scrollDownIntersectionCallback = (
+  private elementBelowPoint = (
     elem: HTMLElement,
     observationPoint: ObservationPoint
   ) => {
     if (observationPoint === this.observationPoint) {
-      console.log("=====Intersecting downwards=====");
+      console.log("=====Element just below=====");
       console.log(elem);
     }
   };

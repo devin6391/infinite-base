@@ -5,16 +5,16 @@ export enum ScrollContainerCoordinateRef {
   BOTTOM
 }
 
-export type ScrollIntersectionCallback = (
+export type PointIntersectionCallback = (
   elem: HTMLElement,
   observationPoint: ObservationPoint,
-  scrollDirection: ScrollDirection
+  positionRelativeToPoint: PositionRelativeToPoint
 ) => void;
 
 export interface ObservationPoint {
   reference: ScrollContainerCoordinateRef;
   displacement: number;
-  intersectionCallback?: ScrollIntersectionCallback;
+  intersectionCallback?: PointIntersectionCallback;
 }
 
 export interface AnchorElement {
@@ -30,6 +30,11 @@ export enum ScrollDirection {
   DOWN
 }
 
+export enum PositionRelativeToPoint {
+  JUST_ABOVE,
+  JUST_BELOW
+}
+
 ////////////////////////////////////////////////////////////////////
 
 function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
@@ -37,15 +42,19 @@ function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
     entries: IntersectionObserverEntry[]
   ) {
     entries.forEach(entry => {
-      const { target, rootBounds, intersectionRect } = entry;
+      const { target, rootBounds, intersectionRect, intersectionRatio } = entry;
       if (
         observationPoint.intersectionCallback &&
         intersectionRect.bottom === rootBounds.bottom
       ) {
+        const positionRelativeToPoint =
+          Math.round(intersectionRatio * 100) === 1
+            ? PositionRelativeToPoint.JUST_BELOW
+            : PositionRelativeToPoint.JUST_ABOVE;
         observationPoint.intersectionCallback(
           target as HTMLElement,
           observationPoint,
-          touchScrollDirection
+          positionRelativeToPoint
         );
       }
     });
@@ -59,15 +68,38 @@ function createViewportBottomObserverCallback(
     entries: IntersectionObserverEntry[]
   ) {
     entries.forEach(entry => {
-      const { target, rootBounds, intersectionRect } = entry;
+      const {
+        target,
+        rootBounds,
+        intersectionRect,
+        intersectionRatio,
+        isIntersecting
+      } = entry;
+      console.log("\n\n");
+      console.log("=========BOTTOM INTERSECTION=============");
+      console.log("Target: ");
+      console.log(target);
+      console.log("is intersecting?");
+      console.log(isIntersecting);
+      console.log("Root bounds top");
+      console.log(rootBounds.top);
+      console.log("Intersection Rect top");
+      console.log(intersectionRect.top);
+      console.log("Intersection ratio");
+      console.log(Math.round(intersectionRatio * 100));
+
       if (
         observationPoint.intersectionCallback &&
         intersectionRect.top === rootBounds.top
       ) {
+        const positionRelativeToPoint =
+          Math.round(intersectionRatio * 100) === 99
+            ? PositionRelativeToPoint.JUST_BELOW
+            : PositionRelativeToPoint.JUST_ABOVE;
         observationPoint.intersectionCallback(
           target as HTMLElement,
           observationPoint,
-          touchScrollDirection
+          positionRelativeToPoint
         );
       }
     });
@@ -83,7 +115,7 @@ export const viewportTopObserver = (
   const intersectionObserverOptions = {
     root,
     rootMargin,
-    threshold: [0.01, 1]
+    threshold: [0, 1]
   };
   const intersectionObserver = new IntersectionObserver(
     createViewportTopObserverCallback(observationPoint),
@@ -101,7 +133,7 @@ export const viewportBottomObserver = (
   const intersectionObserverOptions = {
     root,
     rootMargin,
-    threshold: [0.01, 1]
+    threshold: [0, 1]
   };
   const intersectionObserver = new IntersectionObserver(
     createViewportBottomObserverCallback(observationPoint),
@@ -115,5 +147,8 @@ export const viewportBottomObserver = (
 let touchScrollDirection = ScrollDirection.UP;
 
 export function setTouchScrollDirection(direction: ScrollDirection) {
+  console.log(
+    "Scroll direction: " + (direction === ScrollDirection.UP ? "UP" : "DOWN")
+  );
   touchScrollDirection = direction;
 }
