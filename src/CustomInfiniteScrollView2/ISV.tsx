@@ -95,7 +95,10 @@ export default class ISV extends React.Component<{}, ISVState> {
     observationPoint: ObservationPoint
   ) => {
     if (observationPoint === this.observationPoint) {
-      console.log("=====Element just above=====");
+      console.log(
+        "%c=====Reporting: Element just above=====",
+        "font-size: 14px; color: green"
+      );
       console.log(elem);
     }
   };
@@ -105,7 +108,10 @@ export default class ISV extends React.Component<{}, ISVState> {
     observationPoint: ObservationPoint
   ) => {
     if (observationPoint === this.observationPoint) {
-      console.log("=====Element just below=====");
+      console.log(
+        "%c=====Reporting: Element just below=====",
+        "font-size: 14px; color: green"
+      );
       console.log(elem);
     }
   };

@@ -42,13 +42,34 @@ function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
     entries: IntersectionObserverEntry[]
   ) {
     entries.forEach(entry => {
-      const { target, rootBounds, intersectionRect, intersectionRatio } = entry;
+      const {
+        target,
+        rootBounds,
+        intersectionRatio,
+        isIntersecting,
+        boundingClientRect
+      } = entry;
+      console.log("\n\n");
+      console.log(
+        "%c=========TOP INTERSECTION CONTAINER=============",
+        "font-size: 18px; color: red"
+      );
+      console.log("Target: ");
+      console.log(target);
+      console.log("is intersecting?");
+      console.log(isIntersecting);
+      console.log("Root bounds top");
+      console.log(rootBounds.top);
+      console.log("Target Rect top");
+      console.log(boundingClientRect.top);
+      console.log("Intersection ratio");
+      console.log(Math.round(intersectionRatio * 100));
       if (
         observationPoint.intersectionCallback &&
-        intersectionRect.bottom === rootBounds.bottom
+        boundingClientRect.bottom >= rootBounds.bottom
       ) {
         const positionRelativeToPoint =
-          Math.round(intersectionRatio * 100) === 1
+          boundingClientRect.top >= rootBounds.bottom
             ? PositionRelativeToPoint.JUST_BELOW
             : PositionRelativeToPoint.JUST_ABOVE;
         observationPoint.intersectionCallback(
@@ -71,31 +92,34 @@ function createViewportBottomObserverCallback(
       const {
         target,
         rootBounds,
-        intersectionRect,
         intersectionRatio,
-        isIntersecting
+        isIntersecting,
+        boundingClientRect
       } = entry;
       console.log("\n\n");
-      console.log("=========BOTTOM INTERSECTION=============");
+      console.log(
+        "%c=========BOTTOM INTERSECTION CONTAINER=============",
+        "font-size: 18px; color: red"
+      );
       console.log("Target: ");
       console.log(target);
       console.log("is intersecting?");
       console.log(isIntersecting);
       console.log("Root bounds top");
       console.log(rootBounds.top);
-      console.log("Intersection Rect top");
-      console.log(intersectionRect.top);
+      console.log("Target Rect top");
+      console.log(boundingClientRect.top);
       console.log("Intersection ratio");
       console.log(Math.round(intersectionRatio * 100));
 
       if (
         observationPoint.intersectionCallback &&
-        intersectionRect.top === rootBounds.top
+        boundingClientRect.top <= rootBounds.top
       ) {
         const positionRelativeToPoint =
-          Math.round(intersectionRatio * 100) === 99
-            ? PositionRelativeToPoint.JUST_BELOW
-            : PositionRelativeToPoint.JUST_ABOVE;
+          boundingClientRect.bottom <= rootBounds.top
+            ? PositionRelativeToPoint.JUST_ABOVE
+            : PositionRelativeToPoint.JUST_BELOW;
         observationPoint.intersectionCallback(
           target as HTMLElement,
           observationPoint,
