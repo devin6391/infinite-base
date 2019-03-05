@@ -1,3 +1,9 @@
+interface NewConsole extends Console {
+  re: any;
+}
+
+declare var console: NewConsole;
+
 // Assume reference coordinate is center and has value of (0,0)
 // Anything right or top is Positive and anything left or bottom is negative
 export enum ScrollContainerCoordinateRef {
@@ -32,7 +38,6 @@ export enum ScrollDirection {
 
 export enum PositionRelativeToPoint {
   ABOVE = 1,
-  THROUGH,
   BELOW
 }
 
@@ -75,20 +80,16 @@ function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
         if (
           touchScrollDirection === ScrollDirection.UP &&
           boundingClientRect.top < rootBounds.bottom &&
+          boundingClientRect.bottom < rootBounds.bottom &&
           boundingClientRect.top > rootBounds.top
         ) {
-          positionRelativeToPoint =
-            boundingClientRect.bottom > rootBounds.bottom
-              ? PositionRelativeToPoint.THROUGH
-              : PositionRelativeToPoint.ABOVE;
+          positionRelativeToPoint = PositionRelativeToPoint.ABOVE;
         } else if (
           touchScrollDirection === ScrollDirection.DOWN &&
-          boundingClientRect.bottom > rootBounds.bottom
+          boundingClientRect.bottom > rootBounds.bottom &&
+          boundingClientRect.top > rootBounds.bottom
         ) {
-          positionRelativeToPoint =
-            boundingClientRect.top < rootBounds.bottom
-              ? PositionRelativeToPoint.THROUGH
-              : PositionRelativeToPoint.BELOW;
+          positionRelativeToPoint = PositionRelativeToPoint.BELOW;
         }
 
         if (positionRelativeToPoint) {
@@ -141,21 +142,17 @@ function createViewportBottomObserverCallback(
 
         if (
           touchScrollDirection === ScrollDirection.UP &&
-          boundingClientRect.top < rootBounds.top
+          boundingClientRect.top < rootBounds.top &&
+          boundingClientRect.bottom < rootBounds.top
         ) {
-          positionRelativeToPoint =
-            boundingClientRect.bottom > rootBounds.top
-              ? PositionRelativeToPoint.THROUGH
-              : PositionRelativeToPoint.ABOVE;
+          positionRelativeToPoint = PositionRelativeToPoint.ABOVE;
         } else if (
           touchScrollDirection === ScrollDirection.DOWN &&
           boundingClientRect.bottom > rootBounds.top &&
+          boundingClientRect.top > rootBounds.top &&
           boundingClientRect.bottom < rootBounds.bottom
         ) {
-          positionRelativeToPoint =
-            boundingClientRect.top < rootBounds.top
-              ? PositionRelativeToPoint.THROUGH
-              : PositionRelativeToPoint.BELOW;
+          positionRelativeToPoint = PositionRelativeToPoint.BELOW;
         }
 
         if (positionRelativeToPoint) {
@@ -211,7 +208,7 @@ export const viewportBottomObserver = (
 let touchScrollDirection = ScrollDirection.UP;
 
 export function setTouchScrollDirection(direction: ScrollDirection) {
-  console.log(
+  console.re.log(
     "%cScroll direction: " + (direction === ScrollDirection.UP ? "UP" : "DOWN"),
     "color: green"
   );

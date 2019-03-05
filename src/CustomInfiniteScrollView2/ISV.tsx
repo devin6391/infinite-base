@@ -13,6 +13,10 @@ import {
 import "../CustomInfiniteScrollView1/InfiniteScrollView.css";
 import { Loader } from "../CustomInfiniteScrollView1/InfiniteScrollView";
 
+interface NewConsole extends Console {
+  re: any;
+}
+declare var console: NewConsole;
 export interface ISVState {
   data: number[];
   anchorElement: AnchorElement;
@@ -38,7 +42,7 @@ export default class ISV extends React.Component<{}, ISVState> {
       this.observationPoint.reference = reference;
       this.observationPoint.displacement = displacement;
     } catch (e) {
-      console.error(
+      console.re.error(
         "You can pass reference and displacement in url query param as '?reference=top&displacement=-40'"
       );
     }
@@ -59,8 +63,6 @@ export default class ISV extends React.Component<{}, ISVState> {
       this.elementAbovePoint(elem, observationPoint);
     } else if (positionRelativeToPoint === PositionRelativeToPoint.BELOW) {
       this.elementBelowPoint(elem, observationPoint);
-    } else if(positionRelativeToPoint === PositionRelativeToPoint.THROUGH) {
-      this.elementThroughPoint(elem, observationPoint);
     }
   };
 
@@ -97,11 +99,11 @@ export default class ISV extends React.Component<{}, ISVState> {
     observationPoint: ObservationPoint
   ) => {
     if (observationPoint === this.observationPoint) {
-      console.log(
+      console.re.log(
         "%c=====Reporting: Element just above=====",
         "font-size: 14px; color: green"
       );
-      console.log(elem);
+      console.re.log(elem);
     }
   };
 
@@ -110,26 +112,13 @@ export default class ISV extends React.Component<{}, ISVState> {
     observationPoint: ObservationPoint
   ) => {
     if (observationPoint === this.observationPoint) {
-      console.log(
+      console.re.log(
         "%c=====Reporting: Element just below=====",
         "font-size: 14px; color: green"
       );
-      console.log(elem);
+      console.re.log(elem);
     }
   };
-
-  private elementThroughPoint = (
-    elem: HTMLElement,
-    observationPoint: ObservationPoint
-  ) => {
-    if (observationPoint === this.observationPoint) {
-      console.log(
-        "%c=====Reporting: Element through=====",
-        "font-size: 14px; color: green"
-      );
-      console.log(elem);
-    }
-  }
 }
 
 const initialData = [
