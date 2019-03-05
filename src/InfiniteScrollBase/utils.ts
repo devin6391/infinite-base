@@ -65,10 +65,10 @@ function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
       console.log(target);
       console.log("is intersecting?");
       console.log(isIntersecting);
-      console.log("Root bounds top");
-      console.log(rootBounds.top);
-      console.log("Target Rect top");
-      console.log(boundingClientRect.top);
+      console.log("Root bounds");
+      console.log(rootBounds);
+      console.log("Target Rect");
+      console.log(boundingClientRect);
       console.log("Intersection ratio");
       console.log(Math.round(intersectionRatio * 100));
       console.log("Intersection time");
