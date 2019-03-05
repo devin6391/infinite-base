@@ -74,6 +74,8 @@ function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
       console.log("Intersection time");
       console.log(time);
 
+      console.re.log("Bounding rect", rootBounds);
+
       if (observationPoint.intersectionCallback) {
         let positionRelativeToPoint: PositionRelativeToPoint | null = null;
 
@@ -136,6 +138,8 @@ function createViewportBottomObserverCallback(
       console.log(Math.round(intersectionRatio * 100));
       console.log("Intersection time");
       console.log(time);
+
+      console.re.log("Bounding rect", rootBounds);
 
       if (observationPoint.intersectionCallback) {
         let positionRelativeToPoint: PositionRelativeToPoint | null = null;
