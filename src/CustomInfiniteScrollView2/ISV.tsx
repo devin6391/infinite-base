@@ -117,7 +117,7 @@ export default class ISV extends React.Component<{}, ISVState> {
   ) => {
     if (observationPoint === this.observationPoint) {
       console.re.info(
-        "[blue]=====Reporting: Element just above=====[/blue]"
+        "[blue]=====Reporting: Element just below=====[/blue]"
       );
       console.re.log(elem);
     }
