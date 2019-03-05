@@ -7,8 +7,7 @@ import {
 } from "../InfiniteScrollBase/utils";
 import {
   InfiniteScrollBase,
-  ScrollContainerCoordinateRef,
-  ScrollDirection
+  ScrollContainerCoordinateRef
 } from "../InfiniteScrollBase";
 import "../CustomInfiniteScrollView1/InfiniteScrollView.css";
 import { Loader } from "../CustomInfiniteScrollView1/InfiniteScrollView";
@@ -59,11 +58,17 @@ export default class ISV extends React.Component<{}, ISVState> {
     observationPoint: ObservationPoint,
     positionRelativeToPoint: PositionRelativeToPoint
   ) => {
+    console.re.log("");
+    console.re.log("");
+    console.re.log("[red]==========LOG Boundary Start==========[/red]");
     if (positionRelativeToPoint === PositionRelativeToPoint.ABOVE) {
       this.elementAbovePoint(elem, observationPoint);
     } else if (positionRelativeToPoint === PositionRelativeToPoint.BELOW) {
       this.elementBelowPoint(elem, observationPoint);
     }
+    console.re.log("[red]==========LOG Boundary End==========[/red]");
+    console.re.log("");
+    console.re.log("");
   };
 
   render() {
@@ -99,9 +104,8 @@ export default class ISV extends React.Component<{}, ISVState> {
     observationPoint: ObservationPoint
   ) => {
     if (observationPoint === this.observationPoint) {
-      console.re.log(
-        "%c=====Reporting: Element just above=====",
-        "font-size: 14px; color: green"
+      console.re.info(
+        "[yellow]=====Reporting: Element just above=====[/yellow]"
       );
       console.re.log(elem);
     }
@@ -112,9 +116,8 @@ export default class ISV extends React.Component<{}, ISVState> {
     observationPoint: ObservationPoint
   ) => {
     if (observationPoint === this.observationPoint) {
-      console.re.log(
-        "%c=====Reporting: Element just below=====",
-        "font-size: 14px; color: green"
+      console.re.info(
+        "[blue]=====Reporting: Element just above=====[/blue]"
       );
       console.re.log(elem);
     }

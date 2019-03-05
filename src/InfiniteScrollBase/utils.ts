@@ -209,8 +209,7 @@ let touchScrollDirection = ScrollDirection.UP;
 
 export function setTouchScrollDirection(direction: ScrollDirection) {
   console.re.log(
-    "%cScroll direction: " + (direction === ScrollDirection.UP ? "UP" : "DOWN"),
-    "color: green"
+    "[white]Scroll direction: " + (direction === ScrollDirection.UP ? "UP" : "DOWN") + "[/white]"
   );
   touchScrollDirection = direction;
 }
