@@ -46,8 +46,16 @@ let allObservationPoints: ObservationPoint[];
 let scrollContainer: HTMLDivElement;
 let listContainer: HTMLDivElement;
 
+
 // This can change after initialisation
-const allIntersectionObservers: IntersectionObserver[] = [];
+let allIntersectionObservers: IntersectionObserver[] = [];
+
+// This is an application state value. This value would be true if DPR has to be compensated for rootMargin.
+// DPR: Device Pixel Ratio
+let shouldCompensateForDpr: boolean = false;
+// Below is process state flag.
+// If calculation of DPR and the consequence due to that is done for once, then do not do it again by making it true.
+let compensateForDprProcessed = false;
 
 ////////////////////////////////////////////////////////////////////
 
@@ -64,25 +72,25 @@ function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
         boundingClientRect,
         time
       } = entry;
-      console.log("\n\n");
-      console.log(
-        "%c=========TOP INTERSECTION CONTAINER=============",
-        "font-size: 18px; color: red"
-      );
-      console.log("Target: ");
-      console.log(target);
-      console.log("is intersecting?");
-      console.log(isIntersecting);
-      console.log("Root bounds");
-      console.log(rootBounds);
-      console.log("Target Rect");
-      console.log(boundingClientRect);
-      console.log("Intersection ratio");
-      console.log(Math.round(intersectionRatio * 100));
-      console.log("Intersection time");
-      console.log(time);
+      // console.log("\n\n");
+      // console.log(
+      //   "%c=========TOP INTERSECTION CONTAINER=============",
+      //   "font-size: 18px; color: red"
+      // );
+      // console.log("Target: ");
+      // console.log(target);
+      // console.log("is intersecting?");
+      // console.log(isIntersecting);
+      // console.log("Root bounds");
+      // console.log(rootBounds);
+      // console.log("Target Rect");
+      // console.log(boundingClientRect);
+      // console.log("Intersection ratio");
+      // console.log(Math.round(intersectionRatio * 100));
+      // console.log("Intersection time");
+      // console.log(time);
 
-      console.re.log("Bounding rect", rootBounds);
+      // console.re.log("Bounding rect", rootBounds);
 
       if (observationPoint.intersectionCallback) {
         let positionRelativeToPoint: PositionRelativeToPoint | null = null;
@@ -130,25 +138,30 @@ function createViewportBottomObserverCallback(
         boundingClientRect,
         time
       } = entry;
-      console.log("\n\n");
-      console.log(
-        "%c=========BOTTOM INTERSECTION CONTAINER=============",
-        "font-size: 18px; color: red"
-      );
-      console.log("Target: ");
-      console.log(target);
-      console.log("is intersecting?");
-      console.log(isIntersecting);
-      console.log("Root bounds");
-      console.log(rootBounds);
-      console.log("Target Rect");
-      console.log(boundingClientRect);
-      console.log("Intersection ratio");
-      console.log(Math.round(intersectionRatio * 100));
-      console.log("Intersection time");
-      console.log(time);
+      // console.log("\n\n");
+      // console.log(
+      //   "%c=========BOTTOM INTERSECTION CONTAINER=============",
+      //   "font-size: 18px; color: red"
+      // );
+      // console.log("Target: ");
+      // console.log(target);
+      // console.log("is intersecting?");
+      // console.log(isIntersecting);
+      // console.log("Root bounds");
+      // console.log(rootBounds);
+      // console.log("Target Rect");
+      // console.log(boundingClientRect);
+      // console.log("Intersection ratio");
+      // console.log(Math.round(intersectionRatio * 100));
+      // console.log("Intersection time");
+      // console.log(time);
 
-      console.re.log("Bounding rect", rootBounds);
+      // console.re.log("Bounding rect", rootBounds);
+
+      if(!compensateForDprProcessed) {
+        compensateForDpr(observationPoint, rootBounds);
+        compensateForDprProcessed = true;
+      }
 
       if (observationPoint.intersectionCallback) {
         let positionRelativeToPoint: PositionRelativeToPoint | null = null;
@@ -185,7 +198,10 @@ export const viewportTopObserver = (
   observationPoint: ObservationPoint
 ): IntersectionObserver => {
   const { displacement } = observationPoint;
-  const rootMargin = `0px 0px -${displacement}px 0px`;
+  const compensatedDisplacement = shouldCompensateForDpr
+    ? displacement * window.devicePixelRatio
+    : displacement;
+  const rootMargin = `0px 0px -${compensatedDisplacement}px 0px`;
   const intersectionObserverOptions = {
     root,
     rootMargin,
@@ -203,7 +219,10 @@ export const viewportBottomObserver = (
   observationPoint: ObservationPoint
 ): IntersectionObserver => {
   const { displacement } = observationPoint;
-  const rootMargin = `${displacement}px 0px 0px 0px`;
+  const compensatedDisplacement = shouldCompensateForDpr
+    ? displacement * window.devicePixelRatio
+    : displacement;
+  const rootMargin = `${compensatedDisplacement}px 0px 0px 0px`;
   const intersectionObserverOptions = {
     root,
     rootMargin,
@@ -231,10 +250,12 @@ export function setTouchScrollDirection(direction: ScrollDirection) {
 
 export function initializeObservers(
   root: HTMLDivElement,
+  listRoot: HTMLDivElement,
   observationPoints: ObservationPoint[]
 ) {
-  if(!scrollContainer) scrollContainer = root;
-  if(!allObservationPoints) allObservationPoints = observationPoints;
+  if (!scrollContainer) scrollContainer = root;
+  if (!allObservationPoints) allObservationPoints = observationPoints;
+  if (!listContainer) listContainer = listRoot;
   if (scrollContainer) {
     allObservationPoints.forEach(observationPoint => {
       const { reference } = observationPoint;
@@ -255,8 +276,7 @@ export function initializeObservers(
   }
 }
 
-export function observeChildrenOnIntersection(listRoot: HTMLDivElement) {
-  if(!listContainer) listContainer = listRoot;
+export function observeChildrenOnIntersection() {
   allIntersectionObservers.forEach(intersectionObserver => {
     const children = listContainer.children;
     if (children && children.length > 0) {
@@ -272,3 +292,68 @@ export function unobserveChildrenOnIntersection() {
     intersectionObserver.disconnect();
   });
 }
+
+export function destroyIntersectionObservers() {
+  unobserveChildrenOnIntersection();
+  allIntersectionObservers = [];
+}
+
+export function reloadIntersectionObservers() {
+  console.re.log("[white]==========Reload of intersection observers called============[/white]");
+  destroyIntersectionObservers();
+
+  initializeObservers(scrollContainer, listContainer, allObservationPoints);
+  observeChildrenOnIntersection();
+}
+
+/////////////////////////////DPR Compensation////////////////////////////////////
+
+function compensateForDpr(
+  observationPoint: ObservationPoint,
+  rootBounds: DOMRect | ClientRect
+) {
+  console.re.log("[white]==========Compensate for DPR called============[/white]");
+  if(!shouldCompensateForDpr) {
+    shouldCompensateForDpr = calculateShouldCompensateForDpr(observationPoint, rootBounds);
+  }
+  if(shouldCompensateForDpr) {
+    requestAnimationFrame(reloadIntersectionObservers);
+  }
+}
+
+function calculateShouldCompensateForDpr(
+  observationPoint: ObservationPoint,
+  rootBounds: DOMRect | ClientRect
+): boolean {
+  console.re.log("[white]==========Calculate ShouldCompensate for DPR called============[/white]");
+  let localShouldCompensateForDpr = false;
+
+  if (observationPoint.reference === ScrollContainerCoordinateRef.TOP) {
+    const expectedTop = Math.round(observationPoint.displacement * -1);
+    const actualTop = Math.round(rootBounds.top);
+    if (expectedTop !== actualTop) localShouldCompensateForDpr = true;
+  } else if (
+    observationPoint.reference === ScrollContainerCoordinateRef.BOTTOM
+  ) {
+    const expectedBottom = Math.round(
+      getScrollContainerHeight().height - observationPoint.displacement
+    );
+    const actualBottom = Math.round(rootBounds.bottom);
+    if (expectedBottom !== actualBottom) localShouldCompensateForDpr = true;
+  }
+
+  return localShouldCompensateForDpr;
+}
+
+
+/////////////DPR Compensation////////////////////////
+
+// memoize
+let scrollContainerRect: DOMRect | ClientRect;
+function getScrollContainerHeight(): DOMRect | ClientRect {
+  if (!scrollContainerRect)
+    scrollContainerRect = scrollContainer.getBoundingClientRect();
+  return scrollContainerRect;
+}
+
+let reloadRaf: number | null = null;

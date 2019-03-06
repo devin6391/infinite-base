@@ -75,8 +75,12 @@ export default class InfiniteScrollBase extends React.Component<
         this.initialScrollTopSet(anchorKeySelector, anchorRefPoint);
       }
       if (this.scrollRef.current && this.listRef.current) {
-        initializeObservers(this.scrollRef.current, observationPoints);
-        observeChildrenOnIntersection(this.listRef.current);
+        initializeObservers(
+          this.scrollRef.current,
+          this.listRef.current,
+          observationPoints
+        );
+        observeChildrenOnIntersection();
       }
     }, 0);
   }
@@ -132,7 +136,7 @@ export default class InfiniteScrollBase extends React.Component<
       this.setScrollTopWithElemAtPoint(elemSelector, observationPoint);
       this.updateTransitionElem = null;
     }
-    this.listRef.current && observeChildrenOnIntersection(this.listRef.current);
+    this.listRef.current && observeChildrenOnIntersection();
   }
 
   render() {
