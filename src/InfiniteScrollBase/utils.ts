@@ -82,14 +82,15 @@ function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
         if (
           touchScrollDirection === ScrollDirection.UP &&
           boundingClientRect.top < rootBounds.bottom &&
-          boundingClientRect.bottom < rootBounds.bottom &&
+          Math.round(boundingClientRect.bottom) <=
+            Math.round(rootBounds.bottom) &&
           boundingClientRect.top > rootBounds.top
         ) {
           positionRelativeToPoint = PositionRelativeToPoint.ABOVE;
         } else if (
           touchScrollDirection === ScrollDirection.DOWN &&
           boundingClientRect.bottom > rootBounds.bottom &&
-          boundingClientRect.top > rootBounds.bottom
+          Math.round(boundingClientRect.top) >= Math.round(rootBounds.bottom)
         ) {
           positionRelativeToPoint = PositionRelativeToPoint.BELOW;
         }
@@ -147,14 +148,14 @@ function createViewportBottomObserverCallback(
         if (
           touchScrollDirection === ScrollDirection.UP &&
           boundingClientRect.top < rootBounds.top &&
-          boundingClientRect.bottom < rootBounds.top
+          Math.round(boundingClientRect.bottom) <= Math.round(rootBounds.top)
         ) {
           positionRelativeToPoint = PositionRelativeToPoint.ABOVE;
         } else if (
           touchScrollDirection === ScrollDirection.DOWN &&
           boundingClientRect.bottom > rootBounds.top &&
-          boundingClientRect.top > rootBounds.top &&
-          boundingClientRect.bottom < rootBounds.bottom
+          Math.round(boundingClientRect.top) >= Math.round(rootBounds.top) &&
+          boundingClientRect.bottom < rootBounds.bottom - 1
         ) {
           positionRelativeToPoint = PositionRelativeToPoint.BELOW;
         }
