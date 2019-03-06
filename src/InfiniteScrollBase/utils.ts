@@ -88,20 +88,19 @@ function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
 
       // console.re.log("Bounding rect", rootBounds);
 
+      const intersectionPercent = Math.round(intersectionRatio * 100);
+
       if (observationPoint.intersectionCallback) {
         let positionRelativeToPoint: PositionRelativeToPoint | null = null;
 
         if (
           touchScrollDirection === ScrollDirection.UP &&
-          boundingClientRect.top < rootBounds.bottom &&
-          boundingClientRect.bottom <= rootBounds.bottom &&
-          boundingClientRect.top > rootBounds.top
+          intersectionPercent >= 100
         ) {
           positionRelativeToPoint = PositionRelativeToPoint.ABOVE;
         } else if (
           touchScrollDirection === ScrollDirection.DOWN &&
-          boundingClientRect.bottom > rootBounds.bottom &&
-          boundingClientRect.top >= rootBounds.bottom
+          intersectionPercent === 0
         ) {
           positionRelativeToPoint = PositionRelativeToPoint.BELOW;
         }
@@ -133,40 +132,38 @@ function createViewportBottomObserverCallback(
         boundingClientRect,
         time
       } = entry;
-      console.log("\n\n");
-      console.log(
-        "%c=========BOTTOM INTERSECTION CONTAINER=============",
-        "font-size: 18px; color: red"
-      );
-      console.log("Target: ");
-      console.log(target);
+      // console.log("\n\n");
+      // console.log(
+      //   "%c=========BOTTOM INTERSECTION CONTAINER=============",
+      //   "font-size: 18px; color: red"
+      // );
+      // console.log("Target: ");
+      // console.log(target);
       // console.log("is intersecting?");
       // console.log(isIntersecting);
       // console.log("Root bounds");
       // console.log(rootBounds);
-      console.log("Target Rect");
-      console.log(boundingClientRect);
-      console.log("Intersection ratio");
-      console.log(Math.round(intersectionRatio * 100));
+      // console.log("Target Rect");
+      // console.log(boundingClientRect);
+      // console.log("Intersection ratio");
+      // console.log(intersectionPercent);
       // console.log("Intersection time");
       // console.log(time);
 
-      console.re.log("Bounding rect", rootBounds);
+      // console.re.log("Bounding rect", rootBounds);
 
+      const intersectionPercent = Math.round(intersectionRatio * 100);
       if (observationPoint.intersectionCallback) {
         let positionRelativeToPoint: PositionRelativeToPoint | null = null;
 
         if (
           touchScrollDirection === ScrollDirection.UP &&
-          boundingClientRect.top < rootBounds.top &&
-          boundingClientRect.bottom <= rootBounds.top
+          intersectionPercent === 0
         ) {
           positionRelativeToPoint = PositionRelativeToPoint.ABOVE;
         } else if (
           touchScrollDirection === ScrollDirection.DOWN &&
-          boundingClientRect.bottom > rootBounds.top &&
-          boundingClientRect.top >= rootBounds.top &&
-          boundingClientRect.bottom < rootBounds.bottom - 1
+          intersectionPercent >= 100
         ) {
           positionRelativeToPoint = PositionRelativeToPoint.BELOW;
         }
