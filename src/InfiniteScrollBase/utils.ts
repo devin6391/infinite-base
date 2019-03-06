@@ -59,33 +59,7 @@ function viewportTopObserverCallback(
   observationPoint: ObservationPoint,
   entry: IntersectionObserverEntry
 ) {
-  const {
-    target,
-    rootBounds,
-    intersectionRatio,
-    isIntersecting,
-    boundingClientRect,
-    time
-  } = entry;
-  // console.log("\n\n");
-  // console.log(
-  //   "%c=========TOP INTERSECTION CONTAINER=============",
-  //   "font-size: 18px; color: red"
-  // );
-  // console.log("Target: ");
-  // console.log(target);
-  // console.log("is intersecting?");
-  // console.log(isIntersecting);
-  // console.log("Root bounds");
-  // console.log(rootBounds);
-  // console.log("Target Rect");
-  // console.log(boundingClientRect);
-  // console.log("Intersection ratio");
-  // console.log(Math.round(intersectionRatio * 100));
-  // console.log("Intersection time");
-  // console.log(time);
-
-  // console.re.log("Bounding rect", rootBounds);
+  const { target, rootBounds, intersectionRatio, boundingClientRect } = entry;
 
   const intersectionPercent = Math.round(intersectionRatio * 100);
 
@@ -130,14 +104,7 @@ function viewportBottomObserverCallback(
   observationPoint: ObservationPoint,
   entry: IntersectionObserverEntry
 ) {
-  const {
-    target,
-    rootBounds,
-    intersectionRatio,
-    isIntersecting,
-    boundingClientRect,
-    time
-  } = entry;
+  const { target, rootBounds, intersectionRatio, boundingClientRect } = entry;
 
   const intersectionPercent = Math.round(intersectionRatio * 100);
   if (observationPoint.intersectionCallback) {
