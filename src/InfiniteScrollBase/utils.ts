@@ -42,9 +42,12 @@ export enum PositionRelativeToPoint {
 }
 
 let touchScrollDirection = ScrollDirection.UP;
-const allIntersectionObservers: IntersectionObserver[] = [];
+let allObservationPoints: ObservationPoint[];
 let scrollContainer: HTMLDivElement;
 let listContainer: HTMLDivElement;
+
+// This can change after initialisation
+const allIntersectionObservers: IntersectionObserver[] = [];
 
 ////////////////////////////////////////////////////////////////////
 
@@ -230,19 +233,20 @@ export function initializeObservers(
   root: HTMLDivElement,
   observationPoints: ObservationPoint[]
 ) {
-  scrollContainer = root;
-  if (root) {
-    observationPoints.forEach(observationPoint => {
+  if(!scrollContainer) scrollContainer = root;
+  if(!allObservationPoints) allObservationPoints = observationPoints;
+  if (scrollContainer) {
+    allObservationPoints.forEach(observationPoint => {
       const { reference } = observationPoint;
       if (reference === ScrollContainerCoordinateRef.TOP) {
         const intersectionObservers = viewportBottomObserver(
-          root,
+          scrollContainer,
           observationPoint
         );
         allIntersectionObservers.push(intersectionObservers);
       } else if (reference === ScrollContainerCoordinateRef.BOTTOM) {
         const intersectionObservers = viewportTopObserver(
-          root,
+          scrollContainer,
           observationPoint
         );
         allIntersectionObservers.push(intersectionObservers);
@@ -252,9 +256,9 @@ export function initializeObservers(
 }
 
 export function observeChildrenOnIntersection(listRoot: HTMLDivElement) {
-  listContainer = listRoot;
+  if(!listContainer) listContainer = listRoot;
   allIntersectionObservers.forEach(intersectionObserver => {
-    const children = listRoot.children;
+    const children = listContainer.children;
     if (children && children.length > 0) {
       for (let i = 0; i < children.length; i++) {
         intersectionObserver.observe(children[i]);
