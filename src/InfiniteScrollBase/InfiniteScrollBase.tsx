@@ -14,6 +14,7 @@ import {
   unobserveChildrenOnIntersection,
   initializeObservers
 } from "./utils";
+import { compensateDprPromise } from "./compensateDpr";
 
 export interface InfiniteScrollBaseProps {
   // Below props are supposed to be provided initially and then they should not change
@@ -62,11 +63,13 @@ export default class InfiniteScrollBase extends React.Component<
     this.curentChildrenSet = new Set([...children]);
 
     // Positioning anchor element
+    const scrollContainer = this.scrollRef.current;
+    const listContainer = this.listRef.current;
+
     setTimeout(() => {
       // set the scroll container dimensions
       this.scrollContainerRect =
-        this.scrollRef.current &&
-        this.scrollRef.current.getBoundingClientRect();
+        scrollContainer && scrollContainer.getBoundingClientRect();
       const {
         elemSelector: anchorKeySelector,
         observationPoint: anchorRefPoint
@@ -74,15 +77,18 @@ export default class InfiniteScrollBase extends React.Component<
       if (anchorKeySelector) {
         this.initialScrollTopSet(anchorKeySelector, anchorRefPoint);
       }
-      if (this.scrollRef.current && this.listRef.current) {
-        initializeObservers(
-          this.scrollRef.current,
-          this.listRef.current,
-          observationPoints
-        );
-        observeChildrenOnIntersection();
+      if (scrollContainer && listContainer) {
+        compensateDprPromise(scrollContainer).then(compensateDpr => {
+          initializeObservers(
+            scrollContainer,
+            listContainer,
+            observationPoints,
+            compensateDpr
+          );
+          observeChildrenOnIntersection();
+        });
       }
-    }, 0);
+    }, 10);
   }
 
   shouldComponentUpdate(newProps: InfiniteScrollBaseProps) {
