@@ -9,7 +9,10 @@ import {
   ScrollContainerCoordinateRef,
   setTouchScrollDirection,
   viewportBottomObserver,
-  viewportTopObserver
+  viewportTopObserver,
+  observeChildrenOnIntersection,
+  unobserveChildrenOnIntersection,
+  initializeObservers
 } from "./utils";
 
 export interface InfiniteScrollBaseProps {
@@ -53,7 +56,7 @@ export default class InfiniteScrollBase extends React.Component<
   }
 
   componentDidMount() {
-    const { anchorElement, children } = this.props;
+    const { anchorElement, children, observationPoints } = this.props;
 
     // Set the children set
     this.curentChildrenSet = new Set([...children]);
@@ -71,9 +74,10 @@ export default class InfiniteScrollBase extends React.Component<
       if (anchorKeySelector) {
         this.initialScrollTopSet(anchorKeySelector, anchorRefPoint);
       }
-
-      this.initializeObservers();
-      this.observeChildrenOnIntersection();
+      if (this.scrollRef.current && this.listRef.current) {
+        initializeObservers(this.scrollRef.current, observationPoints);
+        observeChildrenOnIntersection(this.listRef.current);
+      }
     }, 0);
   }
 
@@ -98,7 +102,7 @@ export default class InfiniteScrollBase extends React.Component<
     }
 
     // Unobserve intersections
-    this.unobserveChildrenOnIntersection();
+    unobserveChildrenOnIntersection();
 
     // Set anchor element for updation
     if (newAnchorElem.observationPoint) {
@@ -128,7 +132,7 @@ export default class InfiniteScrollBase extends React.Component<
       this.setScrollTopWithElemAtPoint(elemSelector, observationPoint);
       this.updateTransitionElem = null;
     }
-    this.observeChildrenOnIntersection();
+    this.listRef.current && observeChildrenOnIntersection(this.listRef.current);
   }
 
   render() {
@@ -272,46 +276,5 @@ export default class InfiniteScrollBase extends React.Component<
       ? this.scrollRef.current.scrollTop
       : 0;
     return scrollTop - (anchorElemOffsetTop + listOffsetTop);
-  };
-
-  // =========Intersection observer realated methods===========
-
-  private initializeObservers = () => {
-    const root = this.scrollRef.current;
-    if (root) {
-      this.props.observationPoints.forEach(observationPoint => {
-        const { reference } = observationPoint;
-        if (reference === ScrollContainerCoordinateRef.TOP) {
-          const intersectionObservers = viewportBottomObserver(
-            root,
-            observationPoint
-          );
-          this.allIntersectionObservers.push(intersectionObservers);
-        } else if (reference === ScrollContainerCoordinateRef.BOTTOM) {
-          const intersectionObservers = viewportTopObserver(
-            root,
-            observationPoint
-          );
-          this.allIntersectionObservers.push(intersectionObservers);
-        }
-      });
-    }
-  };
-
-  private observeChildrenOnIntersection = () => {
-    this.allIntersectionObservers.forEach(intersectionObserver => {
-      const children = this.listRef.current && this.listRef.current.children;
-      if (children && children.length > 0) {
-        for (let i = 0; i < children.length; i++) {
-          intersectionObserver.observe(children[i]);
-        }
-      }
-    });
-  };
-
-  private unobserveChildrenOnIntersection = () => {
-    this.allIntersectionObservers.forEach(intersectionObserver => {
-      intersectionObserver.disconnect();
-    });
   };
 }

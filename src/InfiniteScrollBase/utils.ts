@@ -42,6 +42,9 @@ export enum PositionRelativeToPoint {
 }
 
 let touchScrollDirection = ScrollDirection.UP;
+const allIntersectionObservers: IntersectionObserver[] = [];
+let scrollContainer: HTMLDivElement;
+let listContainer: HTMLDivElement;
 
 ////////////////////////////////////////////////////////////////////
 
@@ -214,7 +217,54 @@ export const viewportBottomObserver = (
 
 export function setTouchScrollDirection(direction: ScrollDirection) {
   console.re.log(
-    "[white]Scroll direction: " + (direction === ScrollDirection.UP ? "UP" : "DOWN") + "[/white]"
+    "[white]Scroll direction: " +
+      (direction === ScrollDirection.UP ? "UP" : "DOWN") +
+      "[/white]"
   );
   touchScrollDirection = direction;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+export function initializeObservers(
+  root: HTMLDivElement,
+  observationPoints: ObservationPoint[]
+) {
+  scrollContainer = root;
+  if (root) {
+    observationPoints.forEach(observationPoint => {
+      const { reference } = observationPoint;
+      if (reference === ScrollContainerCoordinateRef.TOP) {
+        const intersectionObservers = viewportBottomObserver(
+          root,
+          observationPoint
+        );
+        allIntersectionObservers.push(intersectionObservers);
+      } else if (reference === ScrollContainerCoordinateRef.BOTTOM) {
+        const intersectionObservers = viewportTopObserver(
+          root,
+          observationPoint
+        );
+        allIntersectionObservers.push(intersectionObservers);
+      }
+    });
+  }
+}
+
+export function observeChildrenOnIntersection(listRoot: HTMLDivElement) {
+  listContainer = listRoot;
+  allIntersectionObservers.forEach(intersectionObserver => {
+    const children = listRoot.children;
+    if (children && children.length > 0) {
+      for (let i = 0; i < children.length; i++) {
+        intersectionObserver.observe(children[i]);
+      }
+    }
+  });
+}
+
+export function unobserveChildrenOnIntersection() {
+  allIntersectionObservers.forEach(intersectionObserver => {
+    intersectionObserver.disconnect();
+  });
 }
