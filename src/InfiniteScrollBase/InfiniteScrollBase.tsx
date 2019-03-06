@@ -278,13 +278,9 @@ export default class InfiniteScrollBase extends React.Component<
 
   private initializeObservers = () => {
     const root = this.scrollRef.current;
-    const scrollContainerHeight = this.scrollContainerRect
-      ? this.scrollContainerRect.height
-      : 0;
     if (root) {
       this.props.observationPoints.forEach(observationPoint => {
-        const { reference, displacement } = observationPoint;
-        const distance = Math.abs(displacement);
+        const { reference } = observationPoint;
         if (reference === ScrollContainerCoordinateRef.TOP) {
           const intersectionObservers = viewportBottomObserver(
             root,

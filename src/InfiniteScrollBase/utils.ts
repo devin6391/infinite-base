@@ -41,6 +41,8 @@ export enum PositionRelativeToPoint {
   BELOW
 }
 
+let touchScrollDirection = ScrollDirection.UP;
+
 ////////////////////////////////////////////////////////////////////
 
 function createViewportTopObserverCallback(observationPoint: ObservationPoint) {
@@ -209,8 +211,6 @@ export const viewportBottomObserver = (
 };
 
 /////////////////////////////////////////////////////////////
-
-let touchScrollDirection = ScrollDirection.UP;
 
 export function setTouchScrollDirection(direction: ScrollDirection) {
   console.re.log(
